@@ -3,3 +3,11 @@ pandas
 plotly
 scikit-learn
 numpy
+matplotlib
+seaborn
+transformers
+pipeline
+TensorFlow
+torch
+wordcloud
+tf-keras
