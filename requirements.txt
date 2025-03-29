@@ -11,3 +11,4 @@ TensorFlow
 torch
 wordcloud
 tf-keras
+statsmodels
