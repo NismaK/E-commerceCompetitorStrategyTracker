@@ -97,7 +97,7 @@ def forecast_discounts_arima(data, future_days=7):
 
     return forecast_df
 
-
+'''
 def generate_strategy_recommendation(product_name, competitor_data, sentiment):
     """Generate strategic recommendations using an LLM."""
     date = datetime.now()
@@ -148,7 +148,7 @@ def generate_strategy_recommendation(product_name, competitor_data, sentiment):
     response = res["choices"][0]["message"]["content"]
     return response
         
-
+'''
 
 
 
@@ -414,6 +414,7 @@ if enable_chatbot:
         response = chatbot_response(user_query, selected_product, product_data_with_predictions, sentiments)
         st.write("### 🤖 Chatbot Response:")
         st.write(response)
+
 
 
 
