@@ -10,7 +10,7 @@ from sklearn.model_selection import train_test_split
 from statsmodels.tsa.arima.model import ARIMA
 from transformers import pipeline
 
-#API_KEY = "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"  # Groq API Key
+API_KEY = "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"  # Groq API Key
 
 
 def truncate_text(text, max_length=512):
@@ -414,6 +414,7 @@ if enable_chatbot:
         response = chatbot_response(user_query, selected_product, product_data_with_predictions, sentiments)
         st.write("### 🤖 Chatbot Response:")
         st.write(response)
+
 
 
 
