@@ -98,125 +98,59 @@ def forecast_discounts_arima(data, future_days=7):
     return forecast_df
 
 
-'''def generate_strategy_recommendation(product_name, competitor_data, sentiment):
+def generate_strategy_recommendation(product_name, competitor_data, sentiment):
     """Generate strategic recommendations using an LLM."""
     date = datetime.now()
     prompt = f"""
     You are a highly skilled business strategist specializing in e-commerce. Based on the following details, suggest actionable strategies to optimize pricing, promotions, and customer satisfaction for the selected product:
 
-1. **Product Name**: {product_name}
-
-2. **Competitor Data** (including current prices, discounts, and predicted discounts):
-{competitor_data}
-
-3. **Sentiment Analysis**:
-{sentiment}
-
-
-5. **Today's Date**: {str(date)}
-
-### Task:
-- Analyze the competitor data and identify key pricing trends.
-- Leverage sentiment analysis insights to highlight areas where customer satisfaction can be improved.
-- Use the discount predictions to suggest how pricing strategies can be optimized over the next 5 days.
-- Recommend promotional campaigns or marketing strategies that align with customer sentiments and competitive trends.
-- Ensure the strategies are actionable, realistic, and geared toward increasing customer satisfaction, driving sales, and outperforming competitors.
-
-Provide your recommendations in a structured format:
-1. **💰Pricing Strategy**
-2. **🎯Promotional Campaign Ideas**
-3. **⭐Customer Satisfaction Recommendations**
-    """
-
-    messages = [{"role": "user", "content": prompt}]
-
-    data = {
-        "messages": [{"role": "user", "content": prompt}],
-        "model": "llama3-8b-8192",
-        "temperature": 0,
-    }
-
-    headers = {"Content-Type": "application/json", "Authorization": f"Bearer {API_KEY}"}
-
-    res = requests.post(
-        "https://api.groq.com/openai/v1/chat/completions",
-        data=json.dumps(data),
-        headers=headers,
-        timeout=10,
-    )
-    res = res.json()
-    response = res["choices"][0]["message"]["content"]
-    return response'''
-
-
-def generate_strategy_recommendation(product_name, competitor_data, sentiment):
-    """Generate strategic recommendations using Groq LLM safely."""
-
-    date = datetime.now()
-
-    # ✅ Reduce input size to avoid token overflow
-    competitor_summary = competitor_data.tail(5).to_string()
-
-    sentiment_summary = sentiment if sentiment else "No sentiment data available."
-
-    prompt = f"""
-You are a highly skilled business strategist specializing in e-commerce.
-
-### Product Overview
-Product Name: {product_name}
-Today's Date: {date.strftime('%Y-%m-%d')}
-
-### Competitor Insights (Recent Data)
-{competitor_summary}
-
-### Customer Sentiment Summary
-{sentiment_summary}
-
-### Your Task
-1. Identify key pricing and discount trends.
-2. Suggest pricing adjustments for the next 5 days based on predicted discounts.
-3. Recommend promotional campaigns aligned with customer sentiment.
-4. Suggest improvements to increase customer satisfaction.
-5. Ensure all recommendations are actionable and profit-oriented.
-
-Provide output in this structured format:
-
-1. 💰 Pricing Strategy  
-2. 🎯 Promotional Campaign Ideas  
-3. ⭐ Customer Satisfaction Recommendations  
-"""
-
-    payload = {
-        "messages": [{"role": "user", "content": prompt}],
-        "model": "llama3-8b-8192",
-        "temperature": 0.5,
-    }
-
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {st.secrets['GROQ_API_KEY']}",
-    }
-
-    try:
-        response = requests.post(
+    1. **Product Name**: {product_name}
+    
+    2. **Competitor Data** (including current prices, discounts, and predicted discounts):
+    {competitor_data}
+    
+    3. **Sentiment Analysis**:
+    {sentiment}
+    
+    
+    5. **Today's Date**: {str(date)}
+    
+    ### Task:
+    - Analyze the competitor data and identify key pricing trends.
+    - Leverage sentiment analysis insights to highlight areas where customer satisfaction can be improved.
+    - Use the discount predictions to suggest how pricing strategies can be optimized over the next 5 days.
+    - Recommend promotional campaigns or marketing strategies that align with customer sentiments and competitive trends.
+    - Ensure the strategies are actionable, realistic, and geared toward increasing customer satisfaction, driving sales, and outperforming competitors.
+    
+    Provide your recommendations in a structured format:
+    1. **💰Pricing Strategy**
+    2. **🎯Promotional Campaign Ideas**
+    3. **⭐Customer Satisfaction Recommendations**
+        """
+    
+        messages = [{"role": "user", "content": prompt}]
+    
+        data = {
+            "messages": [{"role": "user", "content": prompt}],
+            "model": "llama3-8b-8192",
+            "temperature": 0,
+        }
+    
+        headers = {"Content-Type": "application/json", "Authorization": f"Bearer {API_KEY}"}
+    
+        res = requests.post(
             "https://api.groq.com/openai/v1/chat/completions",
-            json=payload,   # ✅ use json= instead of data=json.dumps()
+            data=json.dumps(data),
             headers=headers,
-            timeout=15,
+            timeout=10,
         )
+        res = res.json()
+        response = res["choices"][0]["message"]["content"]
+        return response
+        
 
-        result = response.json()
 
-        # ✅ Safe extraction (prevents KeyError)
-        if "choices" in result and len(result["choices"]) > 0:
-            return result["choices"][0]["message"]["content"]
-        else:
-            st.error("Groq API Error")
-            st.write(result)
-            return "⚠️ Unable to generate strategy at the moment."
 
-    except Exception as e:
-        return f"Error generating strategy: {e}"
 
 def generate_price_recommendation(selected_product, product_data_with_predictions, sentiments):
     """Generate an optimal selling price recommendation using LLM with reduced input size."""
@@ -480,4 +414,5 @@ if enable_chatbot:
         response = chatbot_response(user_query, selected_product, product_data_with_predictions, sentiments)
         st.write("### 🤖 Chatbot Response:")
         st.write(response)
+
 
