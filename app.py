@@ -10,7 +10,8 @@ from sklearn.model_selection import train_test_split
 from statsmodels.tsa.arima.model import ARIMA
 from transformers import pipeline
 
-API_KEY = "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"  # Groq API Key
+#API_KEY = ""  # Groq API Key
+st.secrets["GROQ_API_KEY"]
 
 def truncate_text(text, max_length=512):
     return text[:max_length]
@@ -97,7 +98,7 @@ def forecast_discounts_arima(data, future_days=7):
     return forecast_df
 
 
-def generate_strategy_recommendation(product_name, competitor_data, sentiment):
+'''def generate_strategy_recommendation(product_name, competitor_data, sentiment):
     """Generate strategic recommendations using an LLM."""
     date = datetime.now()
     prompt = f"""
@@ -145,8 +146,77 @@ Provide your recommendations in a structured format:
     )
     res = res.json()
     response = res["choices"][0]["message"]["content"]
-    return response
+    return response'''
 
+
+def generate_strategy_recommendation(product_name, competitor_data, sentiment):
+    """Generate strategic recommendations using Groq LLM safely."""
+
+    date = datetime.now()
+
+    # ✅ Reduce input size to avoid token overflow
+    competitor_summary = competitor_data.tail(5).to_string()
+
+    sentiment_summary = sentiment if sentiment else "No sentiment data available."
+
+    prompt = f"""
+You are a highly skilled business strategist specializing in e-commerce.
+
+### Product Overview
+Product Name: {product_name}
+Today's Date: {date.strftime('%Y-%m-%d')}
+
+### Competitor Insights (Recent Data)
+{competitor_summary}
+
+### Customer Sentiment Summary
+{sentiment_summary}
+
+### Your Task
+1. Identify key pricing and discount trends.
+2. Suggest pricing adjustments for the next 5 days based on predicted discounts.
+3. Recommend promotional campaigns aligned with customer sentiment.
+4. Suggest improvements to increase customer satisfaction.
+5. Ensure all recommendations are actionable and profit-oriented.
+
+Provide output in this structured format:
+
+1. 💰 Pricing Strategy  
+2. 🎯 Promotional Campaign Ideas  
+3. ⭐ Customer Satisfaction Recommendations  
+"""
+
+    payload = {
+        "messages": [{"role": "user", "content": prompt}],
+        "model": "llama3-8b-8192",
+        "temperature": 0.5,
+    }
+
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {st.secrets['GROQ_API_KEY']}",
+    }
+
+    try:
+        response = requests.post(
+            "https://api.groq.com/openai/v1/chat/completions",
+            json=payload,   # ✅ use json= instead of data=json.dumps()
+            headers=headers,
+            timeout=15,
+        )
+
+        result = response.json()
+
+        # ✅ Safe extraction (prevents KeyError)
+        if "choices" in result and len(result["choices"]) > 0:
+            return result["choices"][0]["message"]["content"]
+        else:
+            st.error("Groq API Error")
+            st.write(result)
+            return "⚠️ Unable to generate strategy at the moment."
+
+    except Exception as e:
+        return f"Error generating strategy: {e}"
 
 def generate_price_recommendation(selected_product, product_data_with_predictions, sentiments):
     """Generate an optimal selling price recommendation using LLM with reduced input size."""
@@ -410,3 +480,4 @@ if enable_chatbot:
         response = chatbot_response(user_query, selected_product, product_data_with_predictions, sentiments)
         st.write("### 🤖 Chatbot Response:")
         st.write(response)
+
