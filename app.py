@@ -128,25 +128,25 @@ def generate_strategy_recommendation(product_name, competitor_data, sentiment):
     3. **⭐Customer Satisfaction Recommendations**
         """
     
-        messages = [{"role": "user", "content": prompt}]
+    messages = [{"role": "user", "content": prompt}]
     
-        data = {
+    data = {
             "messages": [{"role": "user", "content": prompt}],
             "model": "llama3-8b-8192",
             "temperature": 0,
-        }
+    }
     
-        headers = {"Content-Type": "application/json", "Authorization": f"Bearer {API_KEY}"}
+    headers = {"Content-Type": "application/json", "Authorization": f"Bearer {API_KEY}"}
     
-        res = requests.post(
+    res = requests.post(
             "https://api.groq.com/openai/v1/chat/completions",
             data=json.dumps(data),
             headers=headers,
             timeout=10,
         )
-        res = res.json()
-        response = res["choices"][0]["message"]["content"]
-        return response
+    res = res.json()
+    response = res["choices"][0]["message"]["content"]
+    return response
         
 
 
@@ -414,6 +414,7 @@ if enable_chatbot:
         response = chatbot_response(user_query, selected_product, product_data_with_predictions, sentiments)
         st.write("### 🤖 Chatbot Response:")
         st.write(response)
+
 
 
 
