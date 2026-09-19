@@ -61,38 +61,79 @@ import pandas as pd
 def forecast_discounts_arima(data, future_days=7):
     """
     Forecast future discounts using ARIMA.
-    :param data: DataFrame containing historical discount data (with a datetime index).
-    :param future_days: Number of days to forecast.
-    :return: DataFrame with historical and forecasted discounts.
     """
 
     if data.empty:
         st.warning("No valid discount data available for forecasting.")
-        return pd.DataFrame()  # Return an empty DataFrame
+        return pd.DataFrame()
 
-    discount_series = data["Discount"]
+    data = data.copy()
 
-    if not isinstance(data.index, pd.DatetimeIndex):
-        try:
-            data.index = pd.to_datetime(data.index)
-        except Exception as e:
-            raise ValueError("Index must be datetime or convertible to datetime.") from e
+    # Make sure Date is a proper datetime index
+    if "Date" in data.columns:
+        data["Date"] = pd.to_datetime(data["Date"], errors="coerce")
+        data = data.dropna(subset=["Date"])
+        data.set_index("Date", inplace=True)
 
-    # Check if discount_series is empty after processing
-    if discount_series.empty:
+    elif not isinstance(data.index, pd.DatetimeIndex):
+        data.index = pd.to_datetime(data.index, errors="coerce")
+        data = data[~data.index.isna()]
+
+    # Sort chronologically
+    data = data.sort_index()
+
+    # Make Discount numeric
+    data["Discount"] = pd.to_numeric(
+        data["Discount"], errors="coerce"
+    )
+
+    data = data.dropna(subset=["Discount"])
+
+    if data.empty:
         st.warning("No valid historical discount data for ARIMA model.")
         return pd.DataFrame()
 
-    model = ARIMA(discount_series, order=(0, 1, 2))
-    model_fit = model.fit()
+    # IMPORTANT: create the series AFTER fixing the index
+    discount_series = data["Discount"].copy()
 
-    forecast = model_fit.forecast(steps=future_days)
+    # Ensure the series has a clean DatetimeIndex
+    discount_series.index = pd.DatetimeIndex(discount_series.index)
+
+    try:
+        # Fit ARIMA
+        model = ARIMA(
+            discount_series,
+            order=(0, 1, 2)
+        )
+
+        model_fit = model.fit()
+
+        # Generate forecast
+        forecast = model_fit.forecast(
+            steps=future_days
+        )
+
+    except Exception as e:
+        st.error(f"ARIMA forecasting failed: {e}")
+        return pd.DataFrame()
+
+    # Start forecasting AFTER the latest historical date
+    last_date = discount_series.index.max()
+
     future_dates = pd.date_range(
-        start=pd.Timestamp.today().normalize(),  # Start from today
-        periods=future_days
+        start=last_date + pd.Timedelta(days=1),
+        periods=future_days,
+        freq="D"
     )
 
-    forecast_df = pd.DataFrame({"Date": future_dates, "Predicted_Discount": forecast.round(2)})
+    # Create forecast dataframe
+    forecast_df = pd.DataFrame(
+        {
+            "Date": future_dates,
+            "Predicted_Discount": forecast.to_numpy().round(2)
+        }
+    )
+
     forecast_df.set_index("Date", inplace=True)
 
     return forecast_df
