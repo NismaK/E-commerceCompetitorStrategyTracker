@@ -187,7 +187,16 @@ def generate_strategy_recommendation(product_name, competitor_data, sentiment):
             timeout=10,
         )
     res = res.json()
+    
+    if "choices" not in res:
+        error_message = res.get("error", {}).get(
+            "message",
+            "Unknown Groq API error"
+        )
+        return f"Groq API Error: {error_message}"
+    
     response = res["choices"][0]["message"]["content"]
+    
     return response
         
 
