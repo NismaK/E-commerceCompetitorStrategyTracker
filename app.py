@@ -10,7 +10,7 @@ from sklearn.model_selection import train_test_split
 from statsmodels.tsa.arima.model import ARIMA
 from transformers import pipeline
 
-API_KEY = "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"  # Groq API Key
+API_KEY = st.secrets["GROQ_API_KEY"]
 
 
 def truncate_text(text, max_length=512):
