@@ -69,20 +69,7 @@ def forecast_discounts_arima(data, future_days=7):
 
     data = data.copy()
 
-    # Make sure Date is a proper datetime index
-    if "Date" in data.columns:
-        data["Date"] = pd.to_datetime(data["Date"], errors="coerce")
-        data = data.dropna(subset=["Date"])
-        data.set_index("Date", inplace=True)
-
-    elif not isinstance(data.index, pd.DatetimeIndex):
-        data.index = pd.to_datetime(data.index, errors="coerce")
-        data = data[~data.index.isna()]
-
-    # Sort chronologically
-    data = data.sort_index()
-
-    # Make Discount numeric
+    # Make sure Discount is numeric
     data["Discount"] = pd.to_numeric(
         data["Discount"], errors="coerce"
     )
@@ -90,17 +77,31 @@ def forecast_discounts_arima(data, future_days=7):
     data = data.dropna(subset=["Discount"])
 
     if data.empty:
-        st.warning("No valid historical discount data for ARIMA model.")
+        st.warning("No valid historical discount data for ARIMA.")
         return pd.DataFrame()
 
-    # IMPORTANT: create the series AFTER fixing the index
-    discount_series = data["Discount"].copy()
+    # Sort by date if Date exists
+    if "Date" in data.columns:
+        data["Date"] = pd.to_datetime(
+            data["Date"], errors="coerce"
+        )
+        data = data.dropna(subset=["Date"])
+        data = data.sort_values("Date")
 
-    # Ensure the series has a clean DatetimeIndex
-    discount_series.index = pd.DatetimeIndex(discount_series.index)
+    # Create a simple sequential series.
+    # This avoids the unsupported/irregular DatetimeIndex problem.
+    discount_series = pd.Series(
+        data["Discount"].astype(float).values
+    )
+
+    if len(discount_series) < 5:
+        st.warning(
+            "Not enough historical data for ARIMA forecasting."
+        )
+        return pd.DataFrame()
 
     try:
-        # Fit ARIMA
+        # Fit ARIMA using sequential observations
         model = ARIMA(
             discount_series,
             order=(0, 1, 2)
@@ -108,7 +109,7 @@ def forecast_discounts_arima(data, future_days=7):
 
         model_fit = model.fit()
 
-        # Generate forecast
+        # Forecast future values
         forecast = model_fit.forecast(
             steps=future_days
         )
@@ -117,27 +118,27 @@ def forecast_discounts_arima(data, future_days=7):
         st.error(f"ARIMA forecasting failed: {e}")
         return pd.DataFrame()
 
-    # Start forecasting AFTER the latest historical date
-    last_date = discount_series.index.max()
+    # Get last actual date
+    if "Date" in data.columns and not data["Date"].empty:
+        last_date = data["Date"].max()
+    else:
+        last_date = pd.Timestamp.today().normalize()
 
+    # Future dates start AFTER last historical date
     future_dates = pd.date_range(
         start=last_date + pd.Timedelta(days=1),
         periods=future_days,
         freq="D"
     )
 
-    # Create forecast dataframe
-    forecast_df = pd.DataFrame(
-        {
-            "Date": future_dates,
-            "Predicted_Discount": forecast.to_numpy().round(2)
-        }
-    )
+    forecast_df = pd.DataFrame({
+        "Date": future_dates,
+        "Predicted_Discount": forecast.to_numpy().round(2)
+    })
 
     forecast_df.set_index("Date", inplace=True)
 
     return forecast_df
-
 
 def generate_strategy_recommendation(product_name, competitor_data, sentiment):
     """Generate strategic recommendations using an LLM."""
@@ -173,7 +174,7 @@ def generate_strategy_recommendation(product_name, competitor_data, sentiment):
     
     data = {
             "messages": [{"role": "user", "content": prompt}],
-            "model": "llama3-8b-8192",
+            "model": "llama-3.1-8b-instant",
             "temperature": 0,
     }
     
@@ -237,7 +238,7 @@ def generate_price_recommendation(selected_product, product_data_with_prediction
 
     chat_data = {
         "messages": [{"role": "user", "content": prompt}],
-        "model": "llama3-8b-8192",
+        "model": "llama-3.1-8b-instant",
         "temperature": 0.5,
     }
 
@@ -277,7 +278,7 @@ You are an expert e-commerce analyst. Based on the following product data(having
     
     chat_data = {
         "messages": [{"role": "user", "content": chat_prompt}],
-        "model": "llama3-8b-8192",
+        "model": "llama-3.1-8b-instant",
         "temperature": 0.5,
     }
     
