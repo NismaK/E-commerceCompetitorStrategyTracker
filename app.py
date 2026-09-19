@@ -174,7 +174,7 @@ def generate_strategy_recommendation(product_name, competitor_data, sentiment):
     
     data = {
             "messages": [{"role": "user", "content": prompt}],
-            "model": "llama-3.1-8b-instant",
+            "model"="openai/gpt-oss-20b",
             "temperature": 0,
     }
     
@@ -247,7 +247,7 @@ def generate_price_recommendation(selected_product, product_data_with_prediction
 
     chat_data = {
         "messages": [{"role": "user", "content": prompt}],
-        "model": "llama-3.1-8b-instant",
+        "model"="openai/gpt-oss-20b",
         "temperature": 0.5,
     }
 
@@ -287,7 +287,7 @@ You are an expert e-commerce analyst. Based on the following product data(having
     
     chat_data = {
         "messages": [{"role": "user", "content": chat_prompt}],
-        "model": "llama-3.1-8b-instant",
+        model="openai/gpt-oss-20b",
         "temperature": 0.5,
     }
     
