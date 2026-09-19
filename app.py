@@ -287,7 +287,7 @@ You are an expert e-commerce analyst. Based on the following product data(having
     
     chat_data = {
         "messages": [{"role": "user", "content": chat_prompt}],
-        model="openai/gpt-oss-20b",
+        "model"="openai/gpt-oss-20b",
         "temperature": 0.5,
     }
     
