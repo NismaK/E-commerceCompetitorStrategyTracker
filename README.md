@@ -37,49 +37,7 @@ The project was designed around four main goals:
 
 The overall workflow can be represented as:
 
-```text
-        🛍️ E-commerce Data
-                │
-                ▼
-        ┌─────────────────┐
-        │ Data Collection │
-        └────────┬────────┘
-                 │
-                 ▼
-        ┌─────────────────┐
-        │ CSV Data Storage│
-        │                 │
-        │ • Prices        │
-        │ • Discounts     │
-        │ • Reviews       │
-        └────────┬────────┘
-                 │
-                 ▼
-        ┌─────────────────┐
-        │ Data Processing  │
-        │ & Analysis      │
-        └────────┬────────┘
-                 │
-          ┌──────┴───────┐
-          ▼              ▼
-   📈 Price Forecast   🧠 Strategy
-       Model            Analysis
-          │              │
-          └──────┬───────┘
-                 ▼
-        ┌─────────────────┐
-        │   API Layer     │
-        └────────┬────────┘
-                 │
-                 ▼
-        ┌─────────────────┐
-        │   Frontend UI   │
-        └────────┬────────┘
-                 │
-                 ▼
-        💡 Pricing & Promotional
-              Insights
-```
+<img src="https://github.com/NismaK/Real-time-Competitor-Strategy-Tracker-for-E-commerce/blob/main/flowchart%20dia.PNG">
 
 > **Data goes in → models do the thinking → insights come out. 🚀**
 
